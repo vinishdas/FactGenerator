@@ -1,8 +1,8 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom"
-import Home from './pages/Home.jsx'
-import Search from "./pages/Search.jsx";
-import Generate from "./pages/Generate.jsx";
-import Analytics from "./pages/Analytics.jsx";
+import HomePage from './pages/Home.jsx'
+import SearchPage from "./pages/Search.jsx";
+import GeneratePage from "./pages/Generate.jsx";
+import AnalyticsPage from "./pages/Analytics.jsx";
 import Layout from "./Layout.jsx";
 import './App.css'
 
@@ -15,10 +15,10 @@ function App() {
         <Router>
           <Layout>
             <Routes>
-              <Route path='/' element={<Home />} />
-              <Route path="/search" element={<Search />} />
-              <Route path="/generate" element={<Generate />} />
-              <Route path="/analytics" element={<Analytics />} />
+              <Route path='/' element={<HomePage />} />
+              <Route path="/search" element={<SearchPage />} />
+              <Route path="/generate" element={<GeneratePage />} />
+              <Route path="/analytics" element={<AnalyticsPage />} />
             </Routes>
           </Layout>
         </Router>

@@ -1,6 +1,6 @@
 import React from 'react'
 
-function Analytics() {
+function AnalyticsPage() {
   return (
     <div className="flex items-center justify-center h-[60vh]">
       Analytics
@@ -8,4 +8,4 @@ function Analytics() {
   )
 }
 
-export default Analytics
+export default AnalyticsPage
