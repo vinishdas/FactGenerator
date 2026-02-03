@@ -2,7 +2,9 @@ import React from 'react'
 
 function Analytics() {
   return (
-    <div>Analytics</div>
+    <div className="flex items-center justify-center h-[60vh]">
+      Analytics
+      </div>
   )
 }
 

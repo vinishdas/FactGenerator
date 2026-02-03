@@ -1,9 +1,11 @@
 
+
 function Home() {
   return (
     <>
-    <div>Home World</div>
-    <p>Lorem ipsum dolor sit amet.</p>
+    <div className="flex items-center justify-center h-[60vh]">
+      Home
+    </div>
     </>
   )
 }

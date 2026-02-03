@@ -3,11 +3,11 @@ import Footer from "./components/footer.jsx";
 
 
 
-function Layout({ Children }) {
+function Layout({ children }) {
     return (
         <>
             <Navbar />
-            {Children}
+            {children}
             <Footer />
         </>
     )
