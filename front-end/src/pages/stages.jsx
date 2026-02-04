@@ -1,34 +1,29 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ArrowLeft, 
   FlaskConical, 
-  ShieldCheck, 
-  AlertCircle, 
   ChevronRight,
   Info
 } from 'lucide-react';
+import { useStages } from '../hooks/useStages';
+import { Skeleton } from "../components/ui/skeleton.js"
 
-const STAGES_DATA = {
-  RA_01: {
-    name: "Rheumatoid Arthritis",
-    stages: [
-      { id: 1, title: "Stage 1", description: "Inflammation of the synovial membrane causing swelling and pain.", status: "Early", severity: "Low" },
-      { id: 2, title: "Stage 2", description: "Cartilage begins to erode as synovial tissue thickens.", status: "Intermediate", severity: "Moderate" },
-      { id: 3, title: "Stage 3", description: "Fibrous connective tissue invades the joint space.", status: "Advanced", severity: "High" },
-      { id: 4, title: "Stage 4", description: "Bones fuse together, leading to total joint immobility.", status: "Critical", severity: "Severe" },
-      { id: 5, title: "Stage 5", description: "Inflammation affects extra-articular organs like heart/lungs.", status: "Chronic", severity: "Extreme" },
-    ]
-  },
-};
 
 function Stages() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [filter, setFilter] = useState("All");
+  const { stages , loading } = useStages(id);
 
-  const disease = STAGES_DATA[id] || STAGES_DATA["RA_01"]; 
+  console.log(stages);
+
+  if (loading || !stages) {
+  return <Skeleton />
+}
+
+  const disease = stages; 
   
   const filteredStages = filter === "All" 
     ? disease.stages 

@@ -19,14 +19,14 @@ function GeneratePage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [factCount, setFactCount] = useState(5);
   const [selectedDisease, setSelectedDisease] = useState("RA");
-  const [stage, setStage] = useState(1)
+  const [stage, setStage] = useState(1);
+  // const [allDiseases , setAllDisease ] = useState([{}])
   const { diseases, loading } = useDiseases();
+  
 
 
-  const [generatedFacts, _setGeneratedFacts] = useState([
-    { id: 1, status: "Verified", source: "nature.com/articles/s41584", fact: "Synovial fibroblasts play a key role in joint destruction in RA." },
-    { id: 2, status: "Verified", source: "thelancet.com/rheumatology", fact: "Analyzing TNF-alpha inhibitor response rates..." },
-  ]);
+
+  const [generatedFacts, _setGeneratedFacts] = useState([{}])
 
   const handleFileChange = (e) => {
     if (e.target.files[0])

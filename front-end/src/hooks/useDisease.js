@@ -9,8 +9,7 @@ export function useDiseases() {
     useEffect(() => {
         const fetchDiseases = async () => {
             try {
-                const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/diseases`);
-                console.log(response);
+                const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/ontology/diseases`);
 
                 setDiseases(response.data);
                 

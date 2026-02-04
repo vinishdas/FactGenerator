@@ -13,8 +13,9 @@ import {
   Plus,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useDiseases } from "../hooks/useDisease";
 
-const DiseaseCard = ({ title, id, pending, active, onClick }) => (
+const DiseaseCard = ({ name, id, pending, active, onClick }) => (
   <motion.div
     layout
     initial={{ opacity: 0, scale: 0.9 }}
@@ -23,7 +24,7 @@ const DiseaseCard = ({ title, id, pending, active, onClick }) => (
     onClick={onClick}
     className="bg-white rounded-[2rem] p-6 shadow-sm border border-slate-100 flex flex-col items-center text-center group cursor-pointer hover:shadow-xl transition-all"
   >
-    <h3 className="text-xl font-bold text-slate-800 mb-1">{title}</h3>
+    <h3 className="text-xl font-bold text-slate-800 mb-1">{name}</h3>
     <p className="text-[10px] text-slate-400 uppercase tracking-widest mb-4">ID: {id}</p>
 
     <div className="flex gap-2 mb-6">
@@ -46,18 +47,12 @@ export default function KnowledgeBaseHome() {
   const [selectedCategory, setSelectedCategory] = useState("All Diseases");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const navigate = useNavigate();
-  const allDiseases = ["Rheumatoid Arthritis", "Diabetes Type II", "In Vitro Fertilization", "Lung Cancer"]
-
-  const diseases = [
-    { id: "RA_01", title: "Rheumatoid Arthritis", pending: 12, active: "1.2k" },
-    { id: "DB_02", title: "Diabetes Type II", pending: 0, active: "5.4k" },
-    { id: "IVF_03", title: "In Vitro Fertilization", pending: 4, active: "820" },
-    { id: "LC_04", title: "Lung Cancer", pending: 15, active: "3.1k" },
-  ];
-
+  const { diseases , _loading } = useDiseases()
+  
   const filteredDiseases = diseases.filter(d =>
-    d.title.toLowerCase().includes(searchQuery.toLowerCase())
+    d.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
+  console.log(filteredDiseases)
 
   return (
     <div className="flex min-h-screen bg-[#fcfcfc] text-slate-900 pt-12">
@@ -154,7 +149,7 @@ export default function KnowledgeBaseHome() {
             {filteredDiseases.map((disease) => (
               <DiseaseCard
                 key={disease.id}
-                title={disease.title}
+                name={disease.name}
                 id={disease.id}
                 pending={disease.pending}
                 active={disease.active}

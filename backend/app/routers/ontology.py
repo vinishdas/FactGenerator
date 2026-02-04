@@ -3,8 +3,23 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 # Import the new models
 from app.models.fact_models import Disease, Stage, Fact
+from pydantic import BaseModel
+
 
 router = APIRouter(prefix="/ontology", tags=["Ontology (Diseases & Stages)"])
+class StatusUpdate(BaseModel):
+    status: str # "APPROVED" or "REJECTED"
+
+@router.patch("/facts/{fact_id}/status")
+def update_fact_status(fact_id: int, update: StatusUpdate, db: Session = Depends(get_db)):
+    fact = db.query(Fact).filter(Fact.id == fact_id).first()
+    if not fact:
+        raise HTTPException(status_code=404, detail="Fact not found")
+    
+    fact.status = update.status.upper()
+    db.commit()
+    return {"message": f"Fact {fact_id} marked as {fact.status}"}
+
 
 # --- 1. Get all Diseases (For Dropdown 1) ---
 @router.get("/diseases")
