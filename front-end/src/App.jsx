@@ -4,6 +4,7 @@ import SearchPage from "./pages/Search.jsx";
 import GeneratePage from "./pages/Generate.jsx";
 import AnalyticsPage from "./pages/Analytics.jsx";
 import Layout from "./Layout.jsx";
+import Stages from "./pages/stages.jsx";
 import './App.css'
 
 function App() {
@@ -15,10 +16,12 @@ function App() {
         <Router>
           <Layout>
             <Routes>
-              <Route path='/' element={<HomePage />} />
+              <Route path='/' index element={<HomePage />} />
               <Route path="/search" element={<SearchPage />} />
               <Route path="/generate" element={<GeneratePage />} />
               <Route path="/analytics" element={<AnalyticsPage />} />
+              <Route path="diseases/:id/stages" element ={<Stages />}/> 
+              <Route path="*" element ={<HomePage/>}/> 
             </Routes>
           </Layout>
         </Router>
