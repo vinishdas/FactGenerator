@@ -59,11 +59,12 @@ def check_status(job_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Job not found")
         
     facts = db.query(Fact).filter(Fact.job_id == job_id).all()
+    print(facts);
     
     return {
         "job_id": job.id,
         "status": job.status,
-        "disease": job.disease,
+        "disease": job.disease_name_log,
         "facts_found": len(facts),
         "facts": [{"text": f.fact_text, "source": f.source_url} for f in facts]
     }

@@ -47,12 +47,12 @@ export default function KnowledgeBaseHome() {
   const [selectedCategory, setSelectedCategory] = useState("All Diseases");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const navigate = useNavigate();
-  const { diseases , _loading } = useDiseases()
-  
+  const { diseases, _loading } = useDiseases()
+
+
   const filteredDiseases = diseases.filter(d =>
     d.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
-  console.log(filteredDiseases)
 
   return (
     <div className="flex min-h-screen bg-[#fcfcfc] text-slate-900 pt-12">
@@ -101,13 +101,28 @@ export default function KnowledgeBaseHome() {
                     </div>
                   </div>
                   <div className="max-h-60 overflow-y-auto">
-                    {allDiseases.map((cat) => (
+                    <button
+                      onClick={() => {
+                        setSelectedCategory("All Diseases");
+                        setSearchQuery("");
+                        setIsDropdownOpen(false);
+                      }}
+                      className="w-full text-left px-4 py-2.5 text-sm hover:bg-emerald-50 hover:text-emerald-700 transition-colors font-medium border-b border-slate-50"
+                    >
+                      All Diseases
+                    </button>
+
+                    {diseases.map((disease) => (
                       <button
-                        key={cat}
-                        onClick={() => { setSelectedCategory(cat); setIsDropdownOpen(false); }}
+                        key={disease.id}
+                        onClick={() => {
+                          setSelectedCategory(disease.name);
+                          setIsDropdownOpen(false);
+                          setSearchQuery(disease.name);
+                        }}
                         className="w-full text-left px-4 py-2.5 text-sm hover:bg-emerald-50 hover:text-emerald-700 transition-colors"
                       >
-                        {cat}
+                        {disease.name}
                       </button>
                     ))}
                   </div>
@@ -118,7 +133,7 @@ export default function KnowledgeBaseHome() {
         </div>
 
         <nav className="space-y-2 mt-auto">
-          <button onClick ={ () => navigate("/generate")}className="w-full flex items-center gap-3 p-3 text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all font-medium text-sm">
+          <button onClick={() => navigate("/dashboard")} className="w-full flex items-center gap-3 p-3 text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all font-medium text-sm">
             <LayoutGrid size={18} /> Dashboard
           </button>
           <button className="w-full flex items-center gap-3 p-3 text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all font-medium text-sm">

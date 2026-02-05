@@ -9,6 +9,11 @@ from pydantic import BaseModel
 router = APIRouter(prefix="/ontology", tags=["Ontology (Diseases & Stages)"])
 class StatusUpdate(BaseModel):
     status: str # "APPROVED" or "REJECTED"
+class DiseaseCreate(BaseModel):
+    name: str
+class StageCreate(BaseModel):
+    name: str
+    disease_id: int
 
 @router.patch("/facts/{fact_id}/status")
 def update_fact_status(fact_id: int, update: StatusUpdate, db: Session = Depends(get_db)):
@@ -20,6 +25,80 @@ def update_fact_status(fact_id: int, update: StatusUpdate, db: Session = Depends
     db.commit()
     return {"message": f"Fact {fact_id} marked as {fact.status}"}
 
+
+@router.post("/diseases")
+def create_disease(disease: DiseaseCreate, db: Session = Depends(get_db)):
+    """
+    Manually creates a new disease entry in the database.
+    Checks for duplicates before creating.
+    """
+    # 1. Clean the input
+    clean_name = disease.name.strip()
+    if not clean_name:
+        raise HTTPException(status_code=400, detail="Disease name cannot be empty")
+
+    # 2. Check if it already exists
+    existing_disease = db.query(Disease).filter(Disease.name == clean_name).first()
+    if existing_disease:
+        raise HTTPException(status_code=400, detail=f"Disease '{clean_name}' already exists.")
+
+    # 3. Create and Save
+    new_disease = Disease(name=clean_name)
+    db.add(new_disease)
+    db.commit()
+    db.refresh(new_disease)
+    
+    return {
+        "id": new_disease.id, 
+        "name": new_disease.name, 
+        "message": "Successfully created new disease."
+    }
+
+
+# --- Create a New Stage (Manual Entry) ---
+@router.post("/stages")
+def create_stage(stage: StageCreate, db: Session = Depends(get_db)):
+    """
+    Manually creates a new stage entry linked to a specific disease.
+    Checks if the parent disease exists and if the stage is a duplicate.
+    """
+    # 1. Clean the input
+    clean_name = stage.name.strip()
+    if not clean_name:
+        raise HTTPException(status_code=400, detail="Stage name cannot be empty")
+
+    # 2. Check if the Parent Disease exists
+    # We cannot create a stage for a disease that doesn't exist.
+    disease = db.query(Disease).filter(Disease.id == stage.disease_id).first()
+    if not disease:
+        raise HTTPException(status_code=404, detail=f"Parent Disease (ID {stage.disease_id}) not found.")
+
+    # 3. Check for duplicates
+    # We check if THIS stage name already exists for THIS disease.
+    # (It is okay to have "Stage 1" for Cancer AND "Stage 1" for Kidney Disease, but not two for Cancer).
+    existing_stage = db.query(Stage).filter(
+        Stage.name == clean_name, 
+        Stage.disease_id == stage.disease_id
+    ).first()
+    
+    if existing_stage:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Stage '{clean_name}' already exists for disease '{disease.name}'."
+        )
+
+    # 4. Create and Save
+    new_stage = Stage(name=clean_name, disease_id=stage.disease_id)
+    db.add(new_stage)
+    db.commit()
+    db.refresh(new_stage)
+    
+    return {
+        "id": new_stage.id, 
+        "name": new_stage.name, 
+        "disease_id": new_stage.disease_id,
+        "message": f"Successfully created stage '{new_stage.name}' for {disease.name}."
+    }
 
 # --- 1. Get all Diseases (For Dropdown 1) ---
 @router.get("/diseases")

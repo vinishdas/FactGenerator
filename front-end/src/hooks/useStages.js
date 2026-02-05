@@ -1,39 +1,44 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import axios from "axios";
-
 
 export function useStages(id) {
     const [stages, setStages] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [isloading, setLoading] = useState(true);
+    const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+    const refetch = useCallback(() => {
+        setRefreshTrigger(prev => prev + 1);
+    }, []);
 
     useEffect(() => {
-        const fetchDiseases = async () => {
+        const fetchStages = async () => {
+            if (!id) 
+                return;
+
+            setLoading(true);
             try {
                 const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/ontology/diseases/${id}/stages`);
-
                 const apiStages = response.data;
 
-                const normalized = {
-                    name: apiStages[0]?.disease_name ?? "Unknown Disease",
-                    stages: apiStages.map(stage => ({
-                        id: stage.id,
-                        title: stage.name,
-                        description: "Description not available",
-                        status: "Early",
-                        severity: "Unknown",
-                    })),
-                };
-                setStages(normalized);
-
+                const normalizedStages = apiStages.map(stage => ({
+                    id: stage.id,
+                    title: stage.name,
+                    disease_name: stage.disease_name, 
+                    description: stage.description || "Description not available",
+                    status: stage.status || "Unknown",
+                    severity: stage.severity || "Unknown",
+                }));
+                
+                setStages(normalizedStages);
             } catch (error) {
-                console.error("Error fetching diseases:", error);
+                console.error("Error fetching stages:", error);
             } finally {
                 setLoading(false);
             }
         };
 
-        fetchDiseases();
-    }, []);
+        fetchStages();
+    }, [id, refreshTrigger]); 
 
-    return { stages, loading };
+    return { stages, isloading, refetch };
 }

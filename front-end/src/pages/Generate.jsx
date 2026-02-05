@@ -13,29 +13,144 @@ import {
 } from 'lucide-react';
 import { Skeleton } from "../components/ui/skeleton.js";
 import { useDiseases } from "../hooks/useDisease.js";
+import { useFacts } from '../hooks/useGenerate.js';
+import { useStages } from '../hooks/useStages.js';
+import { useGetFacts } from '../hooks/useFacts.js';
+import axios from 'axios';
+
 
 function GeneratePage() {
   const [file, setFile] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [factCount, setFactCount] = useState(5);
-  const [selectedDisease, setSelectedDisease] = useState("RA");
+  const [selectedDisease, setSelectedDisease] = useState("Rheumatoid Arthritis");
+  const [diseaseId, setDiseaseId] = useState(0);
   const [stage, setStage] = useState(1);
-  // const [allDiseases , setAllDisease ] = useState([{}])
-  const { diseases, loading } = useDiseases();
-  
+  const { diseases, loading, refetch: refetchDiseases } = useDiseases();
+  const [keywords, setKeyWords] = useState("RA")
+  const { stages, isLoading } = useStages(diseaseId);
+  const { generateFacts } = useFacts();
+  const [jobId, setJobId] = useState(0);
+  const { fetchFacts, _loading } = useGetFacts();
+  const [isNewDisease, setIsNewDisease] = useState(false);
+  const [isNewStage, setIsNewStage] = useState(false);
+  const [customDisease, setCustomDisease] = useState("");
+  const [creating, setCreating] = useState(false);
+  const [customStage, setCustomStage] = useState("");
+  const [creatingStage, setCreatingStage] = useState(false);
+
+  const handleCreateDisease = async () => {
+    if (!customDisease.trim()) return;
+
+    setCreating(true);
+    try {
+      const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/ontology/diseases`, {
+        "name": customDisease
+      });
+
+      const newDisease = response.data;
+
+      if (refetchDiseases) 
+        await refetchDiseases();
+
+      setDiseaseId(newDisease.id);
+      setSelectedDisease(newDisease.id);
+      setIsNewDisease(false);
+      setCustomDisease("");
+
+    } catch (error) {
+      console.error("Error creating disease:", error);
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  const handleCreateStage = async () => {
+    const activeDiseaseId = isNewDisease ? null : (diseaseId || selectedDisease);
+
+    if (!customStage.trim() || !activeDiseaseId) {
+      alert("Please select a disease first and enter a stage name.");
+      return;
+    }
+
+    setCreatingStage(true);
+    try {
+      const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/ontology/stages`, {
+        "name": customStage,
+        "disease_id": activeDiseaseId
+      });
 
 
+      const newStage = response.data;
+      
+      setStage(newStage.name);
+      setIsNewStage(false);
+      setCustomStage("");
 
-  const [generatedFacts, _setGeneratedFacts] = useState([{}])
+    } catch (error) {
+      console.error("Error creating stage:", error);
+      alert("Failed to create stage.");
+    } finally {
+      setCreatingStage(false);
+    }
+  };
+
+
+  const [generatedFacts, _setGeneratedFacts] = useState([])
 
   const handleFileChange = (e) => {
     if (e.target.files[0])
       setFile(e.target.files[0]);
   };
 
-  const startGeneration = () => {
+  const startGeneration = async () => {
     setIsGenerating(true);
-    setTimeout(() => setIsGenerating(false), 3000);
+    try {
+      const finalDiseaseValue = isNewDisease ? customDisease : selectedDisease;
+      if (!finalDiseaseValue) {
+        setIsGenerating(false);
+        return;
+      }
+
+
+      const body = {
+        disease: finalDiseaseValue,
+        stage: stage,
+        keywords: keywords,
+        max_facts: factCount,
+        file: file
+      };
+
+
+      const job_id = await generateFacts(body);
+
+      setJobId(job_id);
+
+      if (job_id) {
+        allfacts(job_id);
+      }
+
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const allfacts = async (idToFetch) => {
+    try {
+      const pollInterval = setInterval(async () => {
+        const response = await fetchFacts(idToFetch);
+
+        if (response && response.length > 0) {
+          _setGeneratedFacts(response);
+          setIsGenerating(false);
+          clearInterval(pollInterval);
+        }
+      }, 5000);
+
+    } catch (error) {
+      console.error("Polling error:", error);
+      setIsGenerating(false);
+    }
   };
 
 
@@ -68,67 +183,155 @@ function GeneratePage() {
                 </label>
               </div>
 
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">
-                  Disease Name
-                </label>
-                <div className="relative">
-                  <select
-                    disabled={loading}
-                    value={selectedDisease}
-                    onChange={(e) => setSelectedDisease(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-4 text-slate-900 font-bold focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all appearance-none cursor-pointer"
-                  >
-                    {loading ? (
-                      <option>Loading Disease ...</option>
-                    ) : (
-                      diseases.map((d) => (
-                        <option key={d.id} value={d.id}>
-                          {d.title}
-                        </option>
-                      ))
-                    )}
-                  </select>
 
-                  <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                    {loading ? (
-                      <Loader2 className="animate-spin text-slate-300" size={20} />
+              <div className="space-y-2">
+                <div className="flex justify-between items-center ml-1">
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                    Disease Name
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsNewDisease(!isNewDisease);
+                      setSelectedDisease(""); // Reset selection
+                    }}
+                    className="text-[10px] font-bold text-emerald-600 hover:text-emerald-700 uppercase tracking-tight"
+                  >
+                    {isNewDisease ? "Select Existing" : "Add Custom +"}
+                  </button>
+                </div>
+
+                <div className="relative">
+                  <AnimatePresence mode="wait">
+                    {isNewDisease ? (
+                      <motion.div
+                        key="custom-input-group"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className="flex gap-2"
+                      >
+                        <input
+                          type="text"
+                          placeholder="Enter new disease name..."
+                          value={customDisease}
+                          onChange={(e) => setCustomDisease(e.target.value)}
+                          className="flex-1 bg-slate-50 border border-emerald-100 rounded-2xl px-5 py-4 text-slate-900 font-bold focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all"
+                          onKeyDown={(e) => e.key === 'Enter' && handleCreateDisease()} // Allow creating by pressing Enter
+                        />
+
+                        <button
+                          type="button"
+                          onClick={handleCreateDisease}
+                          disabled={creating || !customDisease.trim()}
+                          className="bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl px-5 font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center shadow-sm hover:shadow-md"
+                        >
+                          {creating ? (
+                            <Loader2 className="animate-spin" size={20} />
+                          ) : (
+                            "Create"
+                          )}
+                        </button>
+                      </motion.div>
                     ) : (
-                      <PlusCircle className="text-slate-300" size={20} />
+                      <motion.select
+                        key="select-input"
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 10 }}
+                        disabled={loading}
+                        value={selectedDisease}
+                        onChange={(e) => {
+                          const id = e.target.value;
+                          setSelectedDisease(id);
+                          setDiseaseId(id);
+                        }}
+                        className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-4 text-slate-900 font-bold focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all appearance-none cursor-pointer"
+                      >
+                        <option value="" disabled>Select Disease</option>
+                        {diseases.map((d) => (
+                          <option key={d.id} value={d.id}>{d.name}</option>
+                        ))}
+                      </motion.select>
                     )}
-                  </div>
+                  </AnimatePresence>
+
+                  {!isNewDisease && (
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                      {loading ? <Loader2 className="animate-spin text-slate-300" size={20} /> : <PlusCircle className="text-slate-300" size={20} />}
+                    </div>
+                  )}
                 </div>
               </div>
 
               <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">
-                  Stage Name
-                </label>
-                <div className="relative">
-                  <select
-                    disabled={true}
-                    value={stage}
-                    onChange={(e) => setStage(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-4 text-slate-900 font-bold focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all appearance-none cursor-pointer"
+                <div className="flex justify-between items-center ml-1">
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                    Stage Name
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setIsNewStage(!isNewStage)}
+                    className="text-[10px] font-bold text-emerald-600 hover:text-emerald-700 uppercase tracking-tight"
                   >
-                    {loading ? (
-                      <option>Loading Stage ...</option>
-                    ) : (
-                      diseases.map((d) => (
-                        <option key={d.id} value={d.id}>
-                          {d.title}
-                        </option>
-                      ))
-                    )}
-                  </select>
+                    {isNewStage ? "Select Existing" : "Add Custom +"}
+                  </button>
+                </div>
 
-                  <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                    {loading ? (
-                      <Loader2 className="animate-spin text-slate-300" size={20} />
+                <div className="relative">
+                  <AnimatePresence mode="wait">
+                    {isNewStage ? (
+                      <motion.div
+                        key="custom-stage-group"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className="flex gap-2"
+                      >
+                        <input
+                          type="text"
+                          placeholder="e.g., Early Stage"
+                          value={customStage}
+                          onChange={(e) => setCustomStage(e.target.value)}
+                          className="flex-1 bg-slate-50 border border-emerald-100 rounded-2xl px-5 py-4 text-slate-900 font-bold focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all"
+                          onKeyDown={(e) => e.key === 'Enter' && handleCreateStage()}
+                        />
+                        <button
+                          type="button"
+                          onClick={handleCreateStage}
+                          disabled={creatingStage || !customStage.trim()}
+                          className="bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl px-5 font-bold transition-all disabled:opacity-50 flex items-center justify-center shadow-sm"
+                        >
+                          {creatingStage ? <Loader2 className="animate-spin" size={20} /> : "Add"}
+                        </button>
+                      </motion.div>
                     ) : (
-                      <PlusCircle className="text-slate-300" size={20} />
+                      <motion.select
+                        key="stage-select"
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 10 }}
+                        disabled={isLoading}
+                        value={stage}
+                        onChange={(e) => setStage(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-4 text-slate-900 font-bold focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all appearance-none cursor-pointer"
+                      >
+                        {stages.length > 0 ? (
+                          stages.map((s) => (
+                            <option key={s.id} value={s.name}>{s.title || s.name}</option>
+                          ))
+                        ) : (
+                          <option value="" disabled>No stages found</option>
+                        )}
+                      </motion.select>
                     )}
-                  </div>
+                  </AnimatePresence>
+
+                  {!isNewStage && (
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                      {isLoading ? <Loader2 className="animate-spin text-slate-300" size={20} /> : <PlusCircle className="text-slate-300" size={20} />}
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -144,6 +347,20 @@ function GeneratePage() {
                     className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-4 text-slate-900 font-bold focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all"
                   />
                   <PlusCircle className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300" size={20} />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">
+                  KeyWords (Comma Seperated)
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={keywords}
+                    onChange={(e) => setKeyWords(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-4 text-slate-900 font-bold focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all"
+                  />
                 </div>
               </div>
 
@@ -177,6 +394,14 @@ function GeneratePage() {
                 Live Feed
               </span>
             </div>
+
+            {!isGenerating && generatedFacts.length === 0 && (
+              <div className="flex flex-col items-center justify-center h-full py-20 text-slate-400">
+                <Database size={48} className="mb-4 opacity-20" />
+                <p className="font-medium">No facts extracted yet.</p>
+                <p className="text-xs">Upload a CSV and initialize the engine to begin.</p>
+              </div>
+            )}
 
             <div className="p-6 flex-1">
               <div className="space-y-4">
@@ -268,8 +493,8 @@ function GeneratePage() {
           </div>
         </main>
 
-      </div>
-    </div>
+      </div >
+    </div >
   );
 }
 
