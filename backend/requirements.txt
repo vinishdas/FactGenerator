@@ -10,3 +10,8 @@ sentence-transformers
 python-multipart
 pandas
 python-dotenv
+scikit-learn
+joblib
+beautifulsoup4
+lxml
+requests
