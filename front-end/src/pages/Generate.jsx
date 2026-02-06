@@ -50,7 +50,7 @@ function GeneratePage() {
 
       const newDisease = response.data;
 
-      if (refetchDiseases) 
+      if (refetchDiseases)
         await refetchDiseases();
 
       setDiseaseId(newDisease.id);
@@ -82,7 +82,7 @@ function GeneratePage() {
 
 
       const newStage = response.data;
-      
+
       setStage(newStage.name);
       setIsNewStage(false);
       setCustomStage("");
@@ -193,11 +193,11 @@ function GeneratePage() {
                     type="button"
                     onClick={() => {
                       setIsNewDisease(!isNewDisease);
-                      setSelectedDisease(""); // Reset selection
+                      setSelectedDisease("");
                     }}
                     className="text-[10px] font-bold text-emerald-600 hover:text-emerald-700 uppercase tracking-tight"
                   >
-                    {isNewDisease ? "Select Existing" : "Add Custom +"}
+                    {isNewDisease ? "Select Existing" : "Add Custom Disease +"}
                   </button>
                 </div>
 
@@ -217,7 +217,7 @@ function GeneratePage() {
                           value={customDisease}
                           onChange={(e) => setCustomDisease(e.target.value)}
                           className="flex-1 bg-slate-50 border border-emerald-100 rounded-2xl px-5 py-4 text-slate-900 font-bold focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all"
-                          onKeyDown={(e) => e.key === 'Enter' && handleCreateDisease()} // Allow creating by pressing Enter
+                          onKeyDown={(e) => e.key === 'Enter' && handleCreateDisease()}
                         />
 
                         <button
@@ -274,7 +274,7 @@ function GeneratePage() {
                     onClick={() => setIsNewStage(!isNewStage)}
                     className="text-[10px] font-bold text-emerald-600 hover:text-emerald-700 uppercase tracking-tight"
                   >
-                    {isNewStage ? "Select Existing" : "Add Custom +"}
+                    {isNewStage ? "Select Existing" : "Add Custom Stage +"}
                   </button>
                 </div>
 
@@ -417,21 +417,31 @@ function GeneratePage() {
                       {[1, 2].map((i) => (
                         <div
                           key={i}
-                          className="p-5 rounded-[1.5rem] border border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4"
+                          className="p-6 rounded-[2rem] bg-white-100 border border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-sm transition-all"
                         >
-                          <div className="flex-1 space-y-3">
-                            <div className="flex items-center gap-2">
-                              <Skeleton className="h-12 w-12 rounded-full" />
-                              <Skeleton className="h-12 w-12 rounded-full" />
+                          <div className="flex-1 space-y-5">
+                            <div className="flex items-center gap-3">
+                              <Skeleton className="h-6 w-20 rounded-full bg-slate-200 animate-pulse" />
+                              <Skeleton className="h-6 w-20 rounded-full bg-slate-200 animate-pulse" />
                             </div>
-                            <Skeleton className="h-12 w-12 rounded-full" />
-                            <Skeleton className="h-12 w-12 rounded-full" />
-                            <div className="flex items-center gap-1">
-                              <Skeleton className="h-12 w-12 rounded-full" />
-                              <Skeleton className="h-12 w-12 rounded-full" />
+
+                            <div className="space-y-3">
+                              <Skeleton className="h-7 w-3/4 rounded-lg bg-slate-300/80" />
+                              <div className="space-y-2">
+                                <Skeleton className="h-3 w-full rounded-md bg-slate-200/60" />
+                                <Skeleton className="h-3 w-5/6 rounded-md bg-slate-200/60" />
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-4 pt-2">
+                              <Skeleton className="h-4 w-24 rounded-md bg-slate-100" />
+                              <Skeleton className="h-4 w-4 rounded-full bg-slate-100" />
                             </div>
                           </div>
-                          <Skeleton className="h-10 w-28 rounded-xl" />
+
+                          <div className="flex-shrink-0">
+                            <Skeleton className="h-10 w-28 rounded-xl bg-slate-200/50" />
+                          </div>
                         </div>
                       ))}
                     </motion.div>

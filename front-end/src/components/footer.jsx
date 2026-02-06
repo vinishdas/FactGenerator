@@ -1,4 +1,5 @@
 import { Microscope, Heart, Shield } from "lucide-react";
+import { Link } from "react-router-dom";
 
 function Footer() {
   return (
@@ -25,8 +26,12 @@ function Footer() {
             <div className="space-y-4">
               <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Platform</h4>
               <ul className="space-y-2 text-sm font-bold text-slate-600">
+                <Link to="/generate">
                 <li className="hover:text-emerald-600 cursor-pointer transition-colors">Generator</li>
+                </Link>
+                <Link to="/">
                 <li className="hover:text-emerald-600 cursor-pointer transition-colors">Disease Models</li>
+                </Link>
                 <li className="hover:text-emerald-600 cursor-pointer transition-colors">API Docs</li>
               </ul>
             </div>

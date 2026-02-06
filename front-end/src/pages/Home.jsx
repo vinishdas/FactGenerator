@@ -1,4 +1,4 @@
-import React, { useState, } from "react";
+import { useState, } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Search,
@@ -11,9 +11,11 @@ import {
   LayoutGrid,
   Settings,
   Plus,
+  RotateCcw
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate , Link } from "react-router-dom";
 import { useDiseases } from "../hooks/useDisease";
+import { Button } from "../components/ui/button.js";
 
 const DiseaseCard = ({ name, id, pending, active, onClick }) => (
   <motion.div
@@ -44,7 +46,7 @@ const DiseaseCard = ({ name, id, pending, active, onClick }) => (
 
 export default function KnowledgeBaseHome() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("All Diseases");
+  const [selectedCategory, setSelectedCategory] = useState("Search Diseases");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const navigate = useNavigate();
   const { diseases, _loading } = useDiseases()
@@ -94,7 +96,7 @@ export default function KnowledgeBaseHome() {
                       <Search className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
                       <input
                         className="w-full pl-8 pr-3 py-1.5 text-xs bg-white border rounded-md focus:outline-none"
-                        placeholder="Filter list..."
+                        placeholder="Find Diseases..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                       />
@@ -153,9 +155,11 @@ export default function KnowledgeBaseHome() {
             </h1>
           </div>
           <div className="flex gap-3">
+            <Link to="/generate">
             <button className="px-6 py-2.5 bg-slate-900 text-white rounded-full text-sm font-bold hover:bg-slate-800 transition-all flex items-center gap-2">
-              <Plus size={16} /> New Model
+              <Plus size={16} /> Generate Facts
             </button>
+            </Link>
           </div>
         </header>
 
@@ -173,10 +177,25 @@ export default function KnowledgeBaseHome() {
             ))}
           </AnimatePresence>
         </div>
-
+        
         {filteredDiseases.length === 0 && (
-          <div className="text-center py-20 bg-slate-50 rounded-[3rem] border-2 border-dashed">
-            <p className="text-slate-400 font-medium">No diseases found matching "{searchQuery}"</p>
+          <div className="flex flex-col items-center justify-center py-24 px-6 bg-slate-50/50 rounded-[3rem] border-2 border-dashed border-slate-200 transition-all">
+            <h3 className="text-xl font-semibold text-slate-900 mb-2">
+              No matches found
+            </h3>
+            <p className="text-slate-500 text-center max-w-[280px] mb-8 leading-relaxed">
+              We couldn't find anything for <span className="font-bold text-slate-700 italic">"{searchQuery}"</span>.
+              Check the spelling or try a different term.
+            </p>
+
+            <Button
+              variant="outline"
+              onClick={() => setSearchQuery("")}
+              className="gap-2 rounded-full hover:bg-white hover:shadow-md transition-all"
+            >
+              <RotateCcw className="w-4 h-4" />
+              Clear Search
+            </Button>
           </div>
         )}
       </main>
