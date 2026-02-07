@@ -1,7 +1,8 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Microscope, Bell, User } from "lucide-react";
-import { Avatar , AvatarFallback , AvatarImage } from "../components/ui/avatar.js"
+import { Avatar , AvatarFallback , AvatarImage } from "../components/ui/avatar.js";
+
 
 
 function Navbar() {

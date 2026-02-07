@@ -30,16 +30,14 @@ function Footer() {
                 <li className="hover:text-emerald-600 cursor-pointer transition-colors">Generator</li>
                 </Link>
                 <Link to="/">
-                <li className="hover:text-emerald-600 cursor-pointer transition-colors">Disease Models</li>
+                <li className="hover:text-emerald-600 cursor-pointer transition-colors mt-2">Disease Models</li>
                 </Link>
-                <li className="hover:text-emerald-600 cursor-pointer transition-colors">API Docs</li>
               </ul>
             </div>
             <div className="space-y-4">
               <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Legal</h4>
               <ul className="space-y-2 text-sm font-bold text-slate-600">
                 <li className="hover:text-emerald-600 cursor-pointer transition-colors">Privacy Policy</li>
-                <li className="hover:text-emerald-600 cursor-pointer transition-colors">Terms of Service</li>
                 <li className="hover:text-emerald-600 cursor-pointer transition-colors">Compliance</li>
               </ul>
             </div>
