@@ -1,36 +1,35 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Microscope, Bell, User } from "lucide-react";
+import { User } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar.js";
 
 function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
-  
+
   const navItems = [
     { name: "Home", path: "/" },
     { name: "Generate", path: "/generate" },
-    { name: "Search", path: "/search" },
     { name: "Analytics", path: "/analytics" }
   ];
 
-  const activeIndex = navItems.findIndex(item => 
+  const activeIndex = navItems.findIndex(item =>
     item.path === "/" ? location.pathname === "/" : location.pathname.startsWith(item.path)
   );
 
   return (
     <header className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md border-b border-slate-200">
       <nav className="max-w-7xl mx-auto flex items-center justify-between px-6 h-16">
-        
-        <div 
-          className="flex items-center gap-2 cursor-pointer group" 
+
+        <div
+          className="flex items-center cursor-pointer"
           onClick={() => navigate("/")}
         >
-          <div className="p-1.5 bg-slate-900 rounded-lg text-white group-hover:bg-emerald-600 transition-colors">
-            <Microscope size={20} />
-          </div>
-          <span className="text-xl font-black tracking-tighter text-slate-900">
-            FACT<span className="text-emerald-600">{" "}GENERATOR</span>
-          </span>
+          <img
+            src="https://www.floccare.ai/assets/images/logo/FlocCarelogo.png"
+            alt="FlocCare Logo"
+            className="h-12 w-auto object-contain"
+          />
         </div>
 
         <ul className="hidden md:flex items-center gap-2">
@@ -45,7 +44,7 @@ function Navbar() {
                 <span className={isActive ? "text-emerald-600" : "text-slate-500 hover:text-slate-900"}>
                   {item.name}
                 </span>
-                
+
                 {isActive && (
                   <motion.div
                     layoutId="nav-underline"
@@ -59,11 +58,11 @@ function Navbar() {
         </ul>
 
         <div className="flex items-center gap-4">
-          <button className="p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-50 rounded-full transition-all">
-            <Bell size={19} />
-          </button>
           <div className="h-8 w-8 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-500 cursor-pointer hover:bg-emerald-50 hover:text-emerald-600 transition-all">
-            <User size={18} />
+            <Avatar>
+              <AvatarImage src="https://ui-avatars.com/api/?name=user+name" />
+              <AvatarFallback>CN</AvatarFallback>
+            </Avatar>
           </div>
         </div>
 

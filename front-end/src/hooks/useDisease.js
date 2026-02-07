@@ -12,11 +12,13 @@ export function useDiseases() {
                 const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/ontology/diseases`);
 
                 setDiseases(response.data);
-                
+
             } catch (error) {
                 console.error("Error fetching diseases:", error);
             } finally {
-                setLoading(false);
+                setTimeout(() => {
+                    setLoading(false);
+                }, 1000)
             }
         };
 

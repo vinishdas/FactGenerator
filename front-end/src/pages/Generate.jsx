@@ -33,6 +33,7 @@ function GeneratePage() {
   const [stage, setStage] = useState(RA_STAGES_OPTIONS[0].value);
   const [keywords, setKeyWords] = useState("");
   
+  // Removed 'loading' from destructuring to prevent UI blocking
   const { generateFacts } = useFacts();
   const [jobId, setJobId] = useState(0);
   const { fetchFacts } = useGetFacts();
@@ -45,6 +46,9 @@ function GeneratePage() {
 
   const startGeneration = async () => {
     setIsGenerating(true);
+    // Clear previous facts when starting a new generation
+    _setGeneratedFacts([]); 
+    
     try {
       if (!diseaseName) {
         setIsGenerating(false);
@@ -95,6 +99,8 @@ function GeneratePage() {
     }
   };
 
+  // REMOVED: The blocking if(loading) return (...) block was causing the white screen.
+  // The UI will now rely on isGenerating to show skeletons within the layout.
 
   return (
     <div className="min-h-screen bg-[#f8fafc] pt-24 pb-12 px-8">

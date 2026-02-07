@@ -12,18 +12,18 @@ export function useFacts() {
         const formData = new FormData();
 
         formData.append("disease", disease);
-        formData.append("stage", String(stage)); 
+        formData.append("stage", String(stage));
         formData.append("keywords", keywords || "");
         formData.append("max_facts", max_facts);
 
-        if(file)
-            formData.append("file",file);
+        if (file)
+            formData.append("file", file);
 
 
         try {
-            const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/facts/generate`, formData ,{
-                headers :{
-                    "Content-Type" : "multipart/form-data",
+            const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/facts/generate`, formData, {
+                headers: {
+                    "Content-Type": "multipart/form-data",
                 }
             });
             const newJobId = response.data.job_id;
@@ -34,8 +34,10 @@ export function useFacts() {
             console.error("Error fetching facts:", error);
             setError(error.message || "Something went wrong");
         } finally {
-            setLoading(false);
+            setTimeout(() => {
+                setLoading(false);
+            }, 2000)
         }
     };
-    return { generateFacts }
+    return { generateFacts , loading }
 }

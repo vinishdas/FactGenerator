@@ -36,7 +36,9 @@ export function useStages(id) {
             } catch (error) {
                 console.error("Error fetching stages:", error);
             } finally {
-                setLoading(false);
+                setTimeout(() =>{
+                    setLoading(false);
+                },1000)
             }
         };
 

@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from sqlalchemy import text
 from app.database import engine, Base
-from app.routers import fact_generator,ontology,compliance
+from app.routers import fact_generator,ontology,compliance,analytics
 from fastapi.middleware.cors import CORSMiddleware
 
 
@@ -36,6 +36,7 @@ app.add_middleware(
 app.include_router(fact_generator.router)
 app.include_router(ontology.router)
 app.include_router(compliance.router)
+app.include_router(analytics.router)
 
 # --- HEALTH CHECK ---
 # A simple endpoint to verify the server is running.
