@@ -1,3 +1,4 @@
+from app.utils import pydantic_fix
 from fastapi import FastAPI
 from sqlalchemy import text
 from app.database import engine, Base

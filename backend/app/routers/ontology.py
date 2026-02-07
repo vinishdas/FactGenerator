@@ -146,7 +146,11 @@ def get_facts_for_stage(stage_id: int, status: str = "all", db: Session = Depend
                 "text": f.fact_text, 
                 "source": f.source_url, 
                 "status": f.status,
-                "created_at": f.created_at
+                "created_at": f.created_at,
+                "compliance": {
+                    "status": f.compliance.status,
+                    "score": f.compliance.confidence_score
+                } if f.compliance else None
             } for f in facts
         ]
     }

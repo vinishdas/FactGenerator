@@ -74,3 +74,5 @@ class Fact(Base):
     # Relationships
     stage = relationship("Stage", back_populates="facts")
     job = relationship("Job")
+    # Singapore Compliance (One-to-One)
+    compliance = relationship("SingaporeCompliance", uselist=False, back_populates="fact")
