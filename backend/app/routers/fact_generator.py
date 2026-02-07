@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models.fact_models import Job, Fact
 from app.services.csv_handler import parse_csv_urls
-from app.services.pipeline import process_extraction_job
+from app.services.pipeline2 import process_extraction_job
 
 router = APIRouter(prefix="/facts", tags=["Fact Generator"])
 

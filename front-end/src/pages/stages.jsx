@@ -12,10 +12,10 @@ import { Skeleton } from "../components/ui/skeleton.js"
 
 
 function Stages() {
-  const { id } = useParams();
+  const { id } = useParams(); // 'id' here is the Disease ID
   const navigate = useNavigate();
   const [filter, setFilter] = useState("All");
-  const { stages, isloading, _refetch } = useStages(id);
+  const { stages, isloading } = useStages(id);
 
 
   if (isloading) {
@@ -40,9 +40,6 @@ function Stages() {
   const filteredStages = filter === "All"
     ? stages
     : stages.filter(s => s.status === filter);
-
-  const disease = stages;
-
 
   return (
     <div className="min-h-screen bg-[#f8fafc] p-8 mt-16">
@@ -116,7 +113,11 @@ function Stages() {
                     </span>
                   </div>
 
-                  <button className="w-full flex items-center justify-between px-5 py-3 bg-slate-50 hover:bg-slate-900 hover:text-white rounded-xl transition-all group/btn font-bold text-sm text-slate-700">
+                  <button 
+                    // FIX: Navigate to Facts page using diseaseId (id) and stage.id
+                    onClick={() => navigate(`/diseases/${id}/stages/${stage.id}`)}
+                    className="w-full flex items-center justify-between px-5 py-3 bg-slate-50 hover:bg-slate-900 hover:text-white rounded-xl transition-all group/btn font-bold text-sm text-slate-700"
+                  >
                     View Verified Facts
                     <ChevronRight size={16} className="group-hover/btn:translate-x-1 transition-transform" />
                   </button>

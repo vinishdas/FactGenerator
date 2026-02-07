@@ -1,11 +1,14 @@
 from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, Float, UniqueConstraint
 from sqlalchemy.orm import relationship, mapped_column
-from pgvector.sqlalchemy import Vector
+# from pgvector.sqlalchemy import Vector
 from datetime import datetime
 from app.database import Base
+from datetime import datetime
 
 # --- NEW TABLE: DISEASE ---
 #Acts as the source of truth for the dropdown menu.
+
+
 class Disease(Base):
     __tablename__ = "diseases"
     
@@ -30,12 +33,25 @@ class Stage(Base):
     # Relationship: One stage holds many facts
     facts = relationship("Fact", back_populates="stage")
 
-    # Ensure we don't have two "Stage 3" entries for the same disease ID
+    compliance_results = relationship("ComplianceResult", back_populates="stage") 
+    
     __table_args__ = (
         UniqueConstraint('name', 'disease_id', name='_stage_disease_uc'),
     )
 
 # --- MODIFIED TABLE: JOB ---
+class ComplianceResult(Base):
+    __tablename__ = "compliance_results"
+
+    id = Column(Integer, primary_key=True, index=True)
+    url = Column(String, index=True)
+    status = Column(String)  # "PASS" or "FAIL"
+    reason = Column(String)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    # NEW: Link to Stage
+    stage_id = Column(Integer, ForeignKey("stages.id"), nullable=False)
+    stage = relationship("Stage", back_populates="compliance_results")
 # Keeps track of the execution batch for audit history.
 class Job(Base):
     __tablename__ = "jobs"
@@ -65,7 +81,7 @@ class Fact(Base):
 
     fact_text = Column(Text, nullable=False)
     source_url = Column(String)
-    embedding = mapped_column(Vector(384))
+    # embedding = mapped_column(Vector(384))
     
     # Status for the Auditing Interface (Pending/Approved/Rejected)
     status = Column(String, default="PENDING")

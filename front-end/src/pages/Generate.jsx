@@ -12,91 +12,31 @@ import {
   Database
 } from 'lucide-react';
 import { Skeleton } from "../components/ui/skeleton.js";
-import { useDiseases } from "../hooks/useDisease.js";
 import { useFacts } from '../hooks/useGenerate.js';
-import { useStages } from '../hooks/useStages.js';
 import { useGetFacts } from '../hooks/useFacts.js';
-import axios from 'axios';
 
+// Pre-defined RA Stages matching backend/app/services/ra_vocabulary.py
+const RA_STAGES_OPTIONS = [
+    { value: "Stage 1", label: "Stage 1: Risk / Asymptomatic" },
+    { value: "Stage 2", label: "Stage 2: Autoimmunity / Seropositive" },
+    { value: "Stage 3", label: "Stage 3: CSA / Arthralgia" },
+    { value: "Stage 4", label: "Stage 4: Diagnosis & Early Treatment" },
+    { value: "Stage 5", label: "Stage 5: Established / Advanced" },
+];
 
 function GeneratePage() {
   const [file, setFile] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [factCount, setFactCount] = useState(5);
-  const [selectedDisease, setSelectedDisease] = useState("Rheumatoid Arthritis");
-  const [diseaseId, setDiseaseId] = useState(0);
-  const [stage, setStage] = useState(1);
-  const { diseases, loading, refetch: refetchDiseases } = useDiseases();
-  const [keywords, setKeyWords] = useState("RA")
-  const { stages, isLoading } = useStages(diseaseId);
+  // Hardcoded to the specific disease supported by backend
+  const [diseaseName] = useState("Rheumatoid Arthritis"); 
+  const [stage, setStage] = useState(RA_STAGES_OPTIONS[0].value);
+  const [keywords, setKeyWords] = useState("");
+  
   const { generateFacts } = useFacts();
   const [jobId, setJobId] = useState(0);
-  const { fetchFacts, _loading } = useGetFacts();
-  const [isNewDisease, setIsNewDisease] = useState(false);
-  const [isNewStage, setIsNewStage] = useState(false);
-  const [customDisease, setCustomDisease] = useState("");
-  const [creating, setCreating] = useState(false);
-  const [customStage, setCustomStage] = useState("");
-  const [creatingStage, setCreatingStage] = useState(false);
-
-  const handleCreateDisease = async () => {
-    if (!customDisease.trim()) return;
-
-    setCreating(true);
-    try {
-      const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/ontology/diseases`, {
-        "name": customDisease
-      });
-
-      const newDisease = response.data;
-
-      if (refetchDiseases)
-        await refetchDiseases();
-
-      setDiseaseId(newDisease.id);
-      setSelectedDisease(newDisease.id);
-      setIsNewDisease(false);
-      setCustomDisease("");
-
-    } catch (error) {
-      console.error("Error creating disease:", error);
-    } finally {
-      setCreating(false);
-    }
-  };
-
-  const handleCreateStage = async () => {
-    const activeDiseaseId = isNewDisease ? null : (diseaseId || selectedDisease);
-
-    if (!customStage.trim() || !activeDiseaseId) {
-      alert("Please select a disease first and enter a stage name.");
-      return;
-    }
-
-    setCreatingStage(true);
-    try {
-      const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/ontology/stages`, {
-        "name": customStage,
-        "disease_id": activeDiseaseId
-      });
-
-
-      const newStage = response.data;
-
-      setStage(newStage.name);
-      setIsNewStage(false);
-      setCustomStage("");
-
-    } catch (error) {
-      console.error("Error creating stage:", error);
-      alert("Failed to create stage.");
-    } finally {
-      setCreatingStage(false);
-    }
-  };
-
-
-  const [generatedFacts, _setGeneratedFacts] = useState([])
+  const { fetchFacts } = useGetFacts();
+  const [generatedFacts, _setGeneratedFacts] = useState([]);
 
   const handleFileChange = (e) => {
     if (e.target.files[0])
@@ -106,24 +46,20 @@ function GeneratePage() {
   const startGeneration = async () => {
     setIsGenerating(true);
     try {
-      const finalDiseaseValue = isNewDisease ? customDisease : selectedDisease;
-      if (!finalDiseaseValue) {
+      if (!diseaseName) {
         setIsGenerating(false);
         return;
       }
 
-
       const body = {
-        disease: finalDiseaseValue,
+        disease: diseaseName,
         stage: stage,
         keywords: keywords,
         max_facts: factCount,
         file: file
       };
 
-
       const job_id = await generateFacts(body);
-
       setJobId(job_id);
 
       if (job_id) {
@@ -132,6 +68,7 @@ function GeneratePage() {
 
     } catch (error) {
       console.log(error);
+      setIsGenerating(false);
     }
   };
 
@@ -139,11 +76,16 @@ function GeneratePage() {
     try {
       const pollInterval = setInterval(async () => {
         const response = await fetchFacts(idToFetch);
+        // Assuming response structure matches backend output
+        const factsList = response.facts || response; 
 
-        if (response && response.length > 0) {
-          _setGeneratedFacts(response);
-          setIsGenerating(false);
-          clearInterval(pollInterval);
+        if (factsList && factsList.length > 0) {
+            // Check if job status is completed if available, or just presence of facts
+            _setGeneratedFacts(factsList);
+            // We might want to keep polling if the job is still "PROCESSING"
+            // For now, based on your previous code, stopping when facts appear:
+             setIsGenerating(false);
+             clearInterval(pollInterval);
         }
       }, 5000);
 
@@ -185,153 +127,33 @@ function GeneratePage() {
 
 
               <div className="space-y-2">
-                <div className="flex justify-between items-center ml-1">
-                  <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">
-                    Disease Name
-                  </label>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsNewDisease(!isNewDisease);
-                      setSelectedDisease("");
-                    }}
-                    className="text-[10px] font-bold text-emerald-600 hover:text-emerald-700 uppercase tracking-tight"
-                  >
-                    {isNewDisease ? "Select Existing" : "Add Custom Disease +"}
-                  </button>
-                </div>
-
-                <div className="relative">
-                  <AnimatePresence mode="wait">
-                    {isNewDisease ? (
-                      <motion.div
-                        key="custom-input-group"
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        className="flex gap-2"
-                      >
-                        <input
-                          type="text"
-                          placeholder="Enter new disease name..."
-                          value={customDisease}
-                          onChange={(e) => setCustomDisease(e.target.value)}
-                          className="flex-1 bg-slate-50 border border-emerald-100 rounded-2xl px-5 py-4 text-slate-900 font-bold focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all"
-                          onKeyDown={(e) => e.key === 'Enter' && handleCreateDisease()}
-                        />
-
-                        <button
-                          type="button"
-                          onClick={handleCreateDisease}
-                          disabled={creating || !customDisease.trim()}
-                          className="bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl px-5 font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center shadow-sm hover:shadow-md"
-                        >
-                          {creating ? (
-                            <Loader2 className="animate-spin" size={20} />
-                          ) : (
-                            "Create"
-                          )}
-                        </button>
-                      </motion.div>
-                    ) : (
-                      <motion.select
-                        key="select-input"
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 10 }}
-                        disabled={loading}
-                        value={selectedDisease}
-                        onChange={(e) => {
-                          const id = e.target.value;
-                          setSelectedDisease(id);
-                          setDiseaseId(id);
-                        }}
-                        className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-4 text-slate-900 font-bold focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all appearance-none cursor-pointer"
-                      >
-                        <option value="" disabled>Select Disease</option>
-                        {diseases.map((d) => (
-                          <option key={d.id} value={d.id}>{d.name}</option>
-                        ))}
-                      </motion.select>
-                    )}
-                  </AnimatePresence>
-
-                  {!isNewDisease && (
-                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                      {loading ? <Loader2 className="animate-spin text-slate-300" size={20} /> : <PlusCircle className="text-slate-300" size={20} />}
-                    </div>
-                  )}
+                <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">
+                    Target Disease
+                </label>
+                <div className="w-full bg-slate-100 border border-slate-200 rounded-2xl px-5 py-4 text-slate-500 font-bold cursor-not-allowed">
+                    {diseaseName}
                 </div>
               </div>
 
               <div className="space-y-2">
-                <div className="flex justify-between items-center ml-1">
-                  <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">
-                    Stage Name
-                  </label>
-                  <button
-                    type="button"
-                    onClick={() => setIsNewStage(!isNewStage)}
-                    className="text-[10px] font-bold text-emerald-600 hover:text-emerald-700 uppercase tracking-tight"
-                  >
-                    {isNewStage ? "Select Existing" : "Add Custom Stage +"}
-                  </button>
-                </div>
-
+                <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">
+                    Target Stage
+                </label>
                 <div className="relative">
-                  <AnimatePresence mode="wait">
-                    {isNewStage ? (
-                      <motion.div
-                        key="custom-stage-group"
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        className="flex gap-2"
-                      >
-                        <input
-                          type="text"
-                          placeholder="e.g., Early Stage"
-                          value={customStage}
-                          onChange={(e) => setCustomStage(e.target.value)}
-                          className="flex-1 bg-slate-50 border border-emerald-100 rounded-2xl px-5 py-4 text-slate-900 font-bold focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all"
-                          onKeyDown={(e) => e.key === 'Enter' && handleCreateStage()}
-                        />
-                        <button
-                          type="button"
-                          onClick={handleCreateStage}
-                          disabled={creatingStage || !customStage.trim()}
-                          className="bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl px-5 font-bold transition-all disabled:opacity-50 flex items-center justify-center shadow-sm"
-                        >
-                          {creatingStage ? <Loader2 className="animate-spin" size={20} /> : "Add"}
-                        </button>
-                      </motion.div>
-                    ) : (
-                      <motion.select
-                        key="stage-select"
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 10 }}
-                        disabled={isLoading}
+                    <select
                         value={stage}
                         onChange={(e) => setStage(e.target.value)}
                         className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-4 text-slate-900 font-bold focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all appearance-none cursor-pointer"
-                      >
-                        {stages.length > 0 ? (
-                          stages.map((s) => (
-                            <option key={s.id} value={s.name}>{s.title || s.name}</option>
-                          ))
-                        ) : (
-                          <option value="" disabled>No stages found</option>
-                        )}
-                      </motion.select>
-                    )}
-                  </AnimatePresence>
-
-                  {!isNewStage && (
+                    >
+                        {RA_STAGES_OPTIONS.map((opt) => (
+                            <option key={opt.value} value={opt.value}>
+                                {opt.label}
+                            </option>
+                        ))}
+                    </select>
                     <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                      {isLoading ? <Loader2 className="animate-spin text-slate-300" size={20} /> : <PlusCircle className="text-slate-300" size={20} />}
+                       <PlusCircle className="text-slate-300" size={20} />
                     </div>
-                  )}
                 </div>
               </div>
 
@@ -352,11 +174,12 @@ function GeneratePage() {
 
               <div className="space-y-2">
                 <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">
-                  KeyWords (Comma Seperated)
+                  KeyWords (Comma Separated)
                 </label>
                 <div className="relative">
                   <input
                     type="text"
+                    placeholder="Optional keywords..."
                     value={keywords}
                     onChange={(e) => setKeyWords(e.target.value)}
                     className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-4 text-slate-900 font-bold focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all"
@@ -377,7 +200,7 @@ function GeneratePage() {
                 ) : (
                   <Play size={20} />
                 )}
-                {isGenerating ? "Generating..." : "Initialize Engine"}
+                {isGenerating ? "Processing Pipeline..." : "Initialize Engine"}
               </button>
             </form>
           </div>
@@ -399,7 +222,7 @@ function GeneratePage() {
               <div className="flex flex-col items-center justify-center h-full py-20 text-slate-400">
                 <Database size={48} className="mb-4 opacity-20" />
                 <p className="font-medium">No facts extracted yet.</p>
-                <p className="text-xs">Upload a CSV and initialize the engine to begin.</p>
+                <p className="text-xs">Upload a CSV to populate the selected Stage.</p>
               </div>
             )}
 
@@ -414,7 +237,7 @@ function GeneratePage() {
                       exit={{ opacity: 0 }}
                       className="space-y-4"
                     >
-                      {[1, 2].map((i) => (
+                      {[1, 2, 3].map((i) => (
                         <div
                           key={i}
                           className="p-6 rounded-[2rem] bg-white-100 border border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-sm transition-all"
@@ -432,15 +255,6 @@ function GeneratePage() {
                                 <Skeleton className="h-3 w-5/6 rounded-md bg-slate-200/60" />
                               </div>
                             </div>
-
-                            <div className="flex items-center gap-4 pt-2">
-                              <Skeleton className="h-4 w-24 rounded-md bg-slate-100" />
-                              <Skeleton className="h-4 w-4 rounded-full bg-slate-100" />
-                            </div>
-                          </div>
-
-                          <div className="flex-shrink-0">
-                            <Skeleton className="h-10 w-28 rounded-xl bg-slate-200/50" />
                           </div>
                         </div>
                       ))}
@@ -454,7 +268,7 @@ function GeneratePage() {
                     >
                       {generatedFacts.map((item, idx) => (
                         <motion.div
-                          key={item.id}
+                          key={idx} // Using idx if id not guaranteed
                           initial={{ opacity: 0, x: 20 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: idx * 0.1 }}
@@ -462,18 +276,13 @@ function GeneratePage() {
                         >
                           <div className="flex-1 space-y-2">
                             <div className="flex items-center gap-2">
-                              {item.status === "Verified" ? (
                                 <CheckCircle2 size={16} className="text-emerald-500" />
-                              ) : (
-                                <Loader2 size={16} className="text-amber-500 animate-spin" />
-                              )}
-                              <span className={`text-[10px] font-bold uppercase tracking-widest ${item.status === "Verified" ? "text-emerald-600" : "text-amber-600"
-                                }`}>
-                                {item.status}
-                              </span>
+                                <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-600">
+                                   VERIFIED
+                                </span>
                             </div>
                             <p className="text-sm text-slate-800 font-medium leading-relaxed">
-                              {item.fact}
+                              {item.text || item.fact} 
                             </p>
                             <div className="flex items-center gap-1 text-[11px] text-slate-400 font-medium">
                               <FileSpreadsheet size={12} />
@@ -497,7 +306,7 @@ function GeneratePage() {
 
             <div className="p-6 bg-slate-50 border-t border-slate-100 text-center">
               <p className="text-xs text-slate-400 font-medium tracking-tight">
-                Showing {generatedFacts.length} total facts extracted from the provided dataset.
+                Showing {generatedFacts.length} extracted facts.
               </p>
             </div>
           </div>

@@ -22,11 +22,14 @@ export function useStages(id) {
 
                 const normalizedStages = apiStages.map(stage => ({
                     id: stage.id,
+                    name: stage.name, // Ensure raw name is kept for STAGE_DESCRIPTIONS mapping in Home
                     title: stage.name,
                     disease_name: stage.disease_name, 
                     description: stage.description || "Description not available",
                     status: stage.status || "Unknown",
                     severity: stage.severity || "Unknown",
+                    // Map the pending facts count from backend
+                    pending_facts: stage.pending_facts || 0
                 }));
                 
                 setStages(normalizedStages);

@@ -2,11 +2,11 @@ fastapi
 uvicorn
 sqlalchemy
 psycopg2-binary
-pgvector
 spacy
 trafilatura
-ollama
-sentence-transformers
+curl_cffi
+beautifulsoup4
+requests
 python-multipart
-pandas
 python-dotenv
+# REMOVED: playwright, ollama, pgvector

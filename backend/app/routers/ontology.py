@@ -110,13 +110,32 @@ def get_all_diseases(db: Session = Depends(get_db)):
 # --- 2. Get Stages for a specific Disease (For Dropdown 2 / Card Click 1) ---
 @router.get("/diseases/{disease_id}/stages")
 def get_stages_for_disease(disease_id: int, db: Session = Depends(get_db)):
-    """Returns stages related to a specific disease ID."""
+    """
+    Returns stages related to a specific disease ID.
+    Now includes a count of 'PENDING' facts for each stage.
+    """
     disease = db.query(Disease).filter(Disease.id == disease_id).first()
     if not disease:
         raise HTTPException(status_code=404, detail="Disease not found")
         
     stages = db.query(Stage).filter(Stage.disease_id == disease_id).order_by(Stage.name).all()
-    return [{"id": s.id, "name": s.name, "disease_name": disease.name} for s in stages]
+    
+    result = []
+    for s in stages:
+        # Count facts where status is 'PENDING' for this stage
+        pending_count = db.query(Fact).filter(
+            Fact.stage_id == s.id, 
+            Fact.status == "PENDING"
+        ).count()
+        
+        result.append({
+            "id": s.id, 
+            "name": s.name, 
+            "disease_name": disease.name,
+            "pending_facts": pending_count
+        })
+        
+    return result
 
 # --- 3. Get Facts for a Stage (For Auditing Interface / Card Click 2) ---
 @router.get("/stages/{stage_id}/facts")

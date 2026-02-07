@@ -1,23 +1,28 @@
-import { useState, } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Search,
-  Database,
-  Activity,
   Clock,
   ArrowRight,
   Microscope,
-  ChevronDown,
   LayoutGrid,
   Settings,
   Plus,
-  RotateCcw
+  Layers
 } from "lucide-react";
-import { useNavigate , Link } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useDiseases } from "../hooks/useDisease";
+import { useStages } from "../hooks/useStages"; 
 import { Button } from "../components/ui/button.js";
 
-const DiseaseCard = ({ name, id, pending, active, onClick }) => (
+const STAGE_DESCRIPTIONS = {
+  "Stage 1": "Risk / Asymptomatic",
+  "Stage 2": "Autoimmunity / Seropositive",
+  "Stage 3": "CSA / Arthralgia",
+  "Stage 4": "Diagnosis & Early Treatment",
+  "Stage 5": "Established / Advanced"
+};
+
+const StageCard = ({ name, id, pending, onClick }) => (
   <motion.div
     layout
     initial={{ opacity: 0, scale: 0.9 }}
@@ -26,35 +31,44 @@ const DiseaseCard = ({ name, id, pending, active, onClick }) => (
     onClick={onClick}
     className="bg-white rounded-[2rem] p-6 shadow-sm border border-slate-100 flex flex-col items-center text-center group cursor-pointer hover:shadow-xl transition-all"
   >
+    <div className="p-3 bg-emerald-50 text-emerald-600 rounded-full mb-4 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+      <Layers size={24} />
+    </div>
     <h3 className="text-xl font-bold text-slate-800 mb-1">{name}</h3>
-    <p className="text-[10px] text-slate-400 uppercase tracking-widest mb-4">ID: {id}</p>
+    
+    <p className="text-lg font-black text-slate-500 uppercase tracking-tight mb-4">
+      {STAGE_DESCRIPTIONS[name] || name}
+    </p>
 
     <div className="flex gap-2 mb-6">
-      <div className="flex items-center gap-1 px-3 py-1 rounded-full bg-amber-50 text-amber-600 border border-amber-100 text-[10px] font-bold">
-        <Clock size={12} /> {pending} PENDING
-      </div>
-      <div className="flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-100 text-[10px] font-bold">
-        <Activity size={12} /> {active} ACTIVE
+      <div className="flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-amber-50 text-amber-600 border border-amber-100 text-[10px] font-black tracking-wider">
+        <Clock size={12} /> {pending} PENDING AUDIT
       </div>
     </div>
 
     <button className="w-full py-3 bg-white border border-emerald-600 text-emerald-600 rounded-full text-sm font-bold group-hover:bg-emerald-600 group-hover:text-white transition-all flex items-center justify-center gap-2">
-      Review Pending <ArrowRight size={16} />
+      View Facts <ArrowRight size={16} />
     </button>
   </motion.div>
 );
 
 export default function KnowledgeBaseHome() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("Search Diseases");
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const navigate = useNavigate();
-  const { diseases, _loading } = useDiseases()
+  
+  const { diseases, loading: diseasesLoading } = useDiseases();
+  const [raId, setRaId] = useState(null);
 
+  useEffect(() => {
+    if (diseases && diseases.length > 0) {
+      const ra = diseases.find(d => d.name.toLowerCase().includes("rheumatoid")) || diseases[0];
+      if (ra) setRaId(ra.id);
+    }
+  }, [diseases]);
 
-  const filteredDiseases = diseases.filter(d =>
-    d.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const { stages, isLoading: stagesLoading } = useStages(raId);
+
+  const isLoading = diseasesLoading || (raId && stagesLoading);
+  const showEmptyState = !diseasesLoading && (!raId || (stages && stages.length === 0));
 
   return (
     <div className="flex min-h-screen bg-[#fcfcfc] text-slate-900 pt-12">
@@ -63,74 +77,16 @@ export default function KnowledgeBaseHome() {
           <div className="p-2 bg-emerald-600 rounded-lg text-white">
             <Microscope size={20} />
           </div>
-          <span className="font-bold text-lg tracking-tight">Fact Generator</span>
+          <span className="font-bold text-lg tracking-tight">Fact Engine</span>
         </div>
 
-        <div className="space-y-1 mb-8">
-          <label className="text-[10px] font-bold text-slate-400 uppercase px-2 mb-2 block">
-            Select Model
-          </label>
-
-          <div className="relative">
-            <button
-              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="w-full flex items-center justify-between p-3 bg-slate-50 border rounded-xl text-sm font-semibold hover:bg-slate-100 transition-colors"
-            >
-              <div className="flex items-center gap-2">
-                <Database size={16} className="text-emerald-600" />
-                {selectedCategory}
-              </div>
-              <ChevronDown size={16} className={`transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
-            </button>
-
-            <AnimatePresence>
-              {isDropdownOpen && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className="absolute top-full left-0 right-0 mt-2 bg-white border shadow-xl rounded-xl overflow-hidden z-30"
-                >
-                  <div className="p-2 border-b bg-slate-50">
-                    <div className="relative">
-                      <Search className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
-                      <input
-                        className="w-full pl-8 pr-3 py-1.5 text-xs bg-white border rounded-md focus:outline-none"
-                        placeholder="Find Diseases..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                      />
-                    </div>
-                  </div>
-                  <div className="max-h-60 overflow-y-auto">
-                    <button
-                      onClick={() => {
-                        setSelectedCategory("All Diseases");
-                        setSearchQuery("");
-                        setIsDropdownOpen(false);
-                      }}
-                      className="w-full text-left px-4 py-2.5 text-sm hover:bg-emerald-50 hover:text-emerald-700 transition-colors font-medium border-b border-slate-50"
-                    >
-                      All Diseases
-                    </button>
-
-                    {diseases.map((disease) => (
-                      <button
-                        key={disease.id}
-                        onClick={() => {
-                          setSelectedCategory(disease.name);
-                          setIsDropdownOpen(false);
-                          setSearchQuery(disease.name);
-                        }}
-                        className="w-full text-left px-4 py-2.5 text-sm hover:bg-emerald-50 hover:text-emerald-700 transition-colors"
-                      >
-                        {disease.name}
-                      </button>
-                    ))}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+        <div className="space-y-6 mb-8">
+          <div className="px-4 py-4 bg-slate-50 rounded-2xl border border-slate-100">
+             <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Active Model</h4>
+             <div className="font-bold text-slate-800 flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                Rheumatoid Arthritis
+             </div>
           </div>
         </div>
 
@@ -148,16 +104,16 @@ export default function KnowledgeBaseHome() {
         <header className="flex items-end justify-between mb-12">
           <div>
             <div className="flex items-center gap-2 text-emerald-600 font-bold text-xs uppercase tracking-widest mb-2">
-              Knowledge Bases
+              Rheumatoid Arthritis
             </div>
             <h1 className="text-4xl font-black text-slate-900 tracking-tight">
-              Disease Models
+              Clinical Stages
             </h1>
           </div>
           <div className="flex gap-3">
             <Link to="/generate">
             <button className="px-6 py-2.5 bg-slate-900 text-white rounded-full text-sm font-bold hover:bg-slate-800 transition-all flex items-center gap-2">
-              <Plus size={16} /> Generate Facts
+              <Plus size={16} /> Add Data
             </button>
             </Link>
           </div>
@@ -165,37 +121,38 @@ export default function KnowledgeBaseHome() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           <AnimatePresence>
-            {filteredDiseases.map((disease) => (
-              <DiseaseCard
-                key={disease.id}
-                name={disease.name}
-                id={disease.id}
-                pending={disease.pending}
-                active={disease.active}
-                onClick={() => navigate(`/diseases/${disease.id}/stages`)}
+            {!isLoading && stages && stages.map((stage) => (
+              <StageCard
+                key={stage.id}
+                name={stage.name}
+                id={stage.id}
+                pending={stage.pending_facts || 0}
+                onClick={() => navigate(`/diseases/${raId}/stages/${stage.id}`)}
               />
             ))}
           </AnimatePresence>
         </div>
         
-        {filteredDiseases.length === 0 && (
+        {showEmptyState && (
           <div className="flex flex-col items-center justify-center py-24 px-6 bg-slate-50/50 rounded-[3rem] border-2 border-dashed border-slate-200 transition-all">
+            <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mb-6">
+                <Layers size={32} />
+            </div>
             <h3 className="text-xl font-semibold text-slate-900 mb-2">
-              No matches found
+              No Clinical Stages Found
             </h3>
-            <p className="text-slate-500 text-center max-w-[280px] mb-8 leading-relaxed">
-              We couldn't find anything for <span className="font-bold text-slate-700 italic">"{searchQuery}"</span>.
-              Check the spelling or try a different term.
+            <p className="text-slate-500 text-center max-w-[300px] mb-8 leading-relaxed">
+              The database is currently empty. Initialize the engine by adding data to a specific RA Stage.
             </p>
 
-            <Button
-              variant="outline"
-              onClick={() => setSearchQuery("")}
-              className="gap-2 rounded-full hover:bg-white hover:shadow-md transition-all"
-            >
-              <RotateCcw className="w-4 h-4" />
-              Clear Search
-            </Button>
+            <Link to="/generate">
+                <Button
+                className="gap-2 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-6 text-md font-bold shadow-lg shadow-emerald-200"
+                >
+                <Plus className="w-5 h-5" />
+                Initialize Knowledge Base
+                </Button>
+            </Link>
           </div>
         )}
       </main>
