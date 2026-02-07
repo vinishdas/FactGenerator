@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Clock,
   ArrowRight,
-  Microscope,
   LayoutGrid,
   Settings,
   Plus,
@@ -74,10 +73,6 @@ export default function KnowledgeBaseHome() {
     <div className="flex min-h-screen bg-[#fcfcfc] text-slate-900 pt-12">
       <aside className="w-80 bg-white border-r p-6 flex flex-col sticky top-100 h-screen z-20">
         <div className="flex items-center gap-3 mb-10 px-2">
-          <div className="p-2 bg-emerald-600 rounded-lg text-white">
-            <Microscope size={20} />
-          </div>
-          <span className="font-bold text-lg tracking-tight">Fact Engine</span>
         </div>
 
         <div className="space-y-6 mb-8">
