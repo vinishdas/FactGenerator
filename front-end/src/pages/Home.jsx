@@ -1,17 +1,16 @@
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion as _motion, AnimatePresence } from "framer-motion";
 import {
   Clock,
   ArrowRight,
-  LayoutGrid,
-  Settings,
   Plus,
   Layers
 } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
 import { useDiseases } from "../hooks/useDisease";
-import { useStages } from "../hooks/useStages"; 
+import { useStages } from "../hooks/useStages";
 import { Button } from "../components/ui/button.js";
+import { Spinner } from "../components/ui/spinner.js";
 
 const STAGE_DESCRIPTIONS = {
   "Stage 1": "Risk / Asymptomatic",
@@ -34,7 +33,7 @@ const StageCard = ({ name, id, pending, onClick }) => (
       <Layers size={24} />
     </div>
     <h3 className="text-xl font-bold text-slate-800 mb-1">{name}</h3>
-    
+
     <p className="text-lg font-black text-slate-500 uppercase tracking-tight mb-4">
       {STAGE_DESCRIPTIONS[name] || name}
     </p>
@@ -53,7 +52,7 @@ const StageCard = ({ name, id, pending, onClick }) => (
 
 export default function KnowledgeBaseHome() {
   const navigate = useNavigate();
-  
+
   const { diseases, loading: diseasesLoading } = useDiseases();
   const [raId, setRaId] = useState(null);
 
@@ -69,6 +68,17 @@ export default function KnowledgeBaseHome() {
   const isLoading = diseasesLoading || (raId && stagesLoading);
   const showEmptyState = !diseasesLoading && (!raId || (stages && stages.length === 0));
 
+  if ( diseasesLoading || isLoading ) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[80vh] gap-6 mt-12">
+        <Spinner size="lg" />
+        <p className="text-xs font-bold text-slate-400 animate-pulse tracking-widest uppercase">
+          Loading Stages ...
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="flex min-h-screen bg-[#fcfcfc] text-slate-900 pt-12">
       <aside className="w-80 bg-white border-r p-6 flex flex-col sticky top-100 h-screen z-20">
@@ -77,22 +87,13 @@ export default function KnowledgeBaseHome() {
 
         <div className="space-y-6 mb-8">
           <div className="px-4 py-4 bg-slate-50 rounded-2xl border border-slate-100">
-             <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Active Model</h4>
-             <div className="font-bold text-slate-800 flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-                Rheumatoid Arthritis
-             </div>
+            <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 mt-1">Active Disease Models</h4>
+            <div className="font-bold text-slate-800 flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+              Rheumatoid Arthritis
+            </div>
           </div>
         </div>
-
-        <nav className="space-y-2 mt-auto">
-          <button onClick={() => navigate("/dashboard")} className="w-full flex items-center gap-3 p-3 text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all font-medium text-sm">
-            <LayoutGrid size={18} /> Dashboard
-          </button>
-          <button className="w-full flex items-center gap-3 p-3 text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all font-medium text-sm">
-            <Settings size={18} /> Settings
-          </button>
-        </nav>
       </aside>
 
       <main className="flex-1 p-12">
@@ -107,9 +108,9 @@ export default function KnowledgeBaseHome() {
           </div>
           <div className="flex gap-3">
             <Link to="/generate">
-            <button className="px-6 py-2.5 bg-slate-900 text-white rounded-full text-sm font-bold hover:bg-slate-800 transition-all flex items-center gap-2">
-              <Plus size={16} /> Add Data
-            </button>
+              <button className="px-6 py-2.5 bg-slate-900 text-white rounded-full text-sm font-bold hover:bg-slate-800 transition-all flex items-center gap-2">
+                <Plus size={16} /> Add Data
+              </button>
             </Link>
           </div>
         </header>
@@ -127,11 +128,11 @@ export default function KnowledgeBaseHome() {
             ))}
           </AnimatePresence>
         </div>
-        
+
         {showEmptyState && (
           <div className="flex flex-col items-center justify-center py-24 px-6 bg-slate-50/50 rounded-[3rem] border-2 border-dashed border-slate-200 transition-all">
             <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mb-6">
-                <Layers size={32} />
+              <Layers size={32} />
             </div>
             <h3 className="text-xl font-semibold text-slate-900 mb-2">
               No Clinical Stages Found
@@ -141,12 +142,12 @@ export default function KnowledgeBaseHome() {
             </p>
 
             <Link to="/generate">
-                <Button
+              <Button
                 className="gap-2 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-6 text-md font-bold shadow-lg shadow-emerald-200"
-                >
+              >
                 <Plus className="w-5 h-5" />
                 Initialize Knowledge Base
-                </Button>
+              </Button>
             </Link>
           </div>
         )}

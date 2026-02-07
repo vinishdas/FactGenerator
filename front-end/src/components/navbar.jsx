@@ -1,8 +1,6 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Microscope, Bell, User } from "lucide-react";
-import { Avatar , AvatarFallback , AvatarImage } from "../components/ui/avatar.js";
-
+import { Avatar , AvatarImage } from "../components/ui/avatar.js";
 
 
 function Navbar() {
@@ -23,16 +21,14 @@ function Navbar() {
     <header className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md border-b border-slate-200">
       <nav className="max-w-7xl mx-auto flex items-center justify-between px-6 h-16">
 
-        <div
-          className="flex items-center gap-2 cursor-pointer group"
+        <div className="flex items-center gap-2 cursor-pointer group"
           onClick={() => navigate("/")}
         >
-          <div className="p-1.5 bg-slate-900 rounded-lg text-white group-hover:bg-emerald-600 transition-colors">
-            <Microscope size={20} />
-          </div>
-          <span className="text-xl font-black tracking-tighter text-slate-900">
-            FACT<span className="text-emerald-600">{" "}GENERATOR</span>
-          </span>
+          <img
+            src="https://www.floccare.ai/assets/images/logo/FlocCarelogo.png"
+            alt="FlocCare Logo"
+            className="h-12 w-auto object-contain"
+          />
         </div>
 
         <ul className="hidden md:flex items-center gap-2">
@@ -61,12 +57,8 @@ function Navbar() {
         </ul>
 
         <div className="flex items-center gap-4">
-          <button className="p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-50 rounded-full transition-all">
-            <Bell size={19} />
-          </button>
           <Avatar>
             <AvatarImage src="https://ui-avatars.com/api/?name=User+name" />
-            <AvatarFallback>CN</AvatarFallback>
           </Avatar>
         </div>
 
