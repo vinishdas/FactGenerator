@@ -1,7 +1,7 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
-import { User } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar.js";
+import { Avatar , AvatarImage } from "../components/ui/avatar.js";
+
 
 function Navbar() {
   const navigate = useNavigate();
@@ -21,8 +21,7 @@ function Navbar() {
     <header className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md border-b border-slate-200">
       <nav className="max-w-7xl mx-auto flex items-center justify-between px-6 h-16">
 
-        <div
-          className="flex items-center cursor-pointer"
+        <div className="flex items-center gap-2 cursor-pointer group"
           onClick={() => navigate("/")}
         >
           <img
@@ -58,12 +57,9 @@ function Navbar() {
         </ul>
 
         <div className="flex items-center gap-4">
-          <div className="h-8 w-8 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-500 cursor-pointer hover:bg-emerald-50 hover:text-emerald-600 transition-all">
-            <Avatar>
-              <AvatarImage src="https://ui-avatars.com/api/?name=user+name" />
-              <AvatarFallback>CN</AvatarFallback>
-            </Avatar>
-          </div>
+          <Avatar>
+            <AvatarImage src="https://ui-avatars.com/api/?name=User+name" />
+          </Avatar>
         </div>
 
       </nav>

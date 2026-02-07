@@ -2,9 +2,9 @@ import { useState } from "react";
 import axios from "axios";
 
 export function useFacts() {
-    const [jobId, setJobId] = useState(0);
+    const [_jobId, setJobId] = useState(0);
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
+    const [_error, setError] = useState(null);
 
     const generateFacts = async ({ disease, stage, keywords, max_facts, file }) => {
         setLoading(true);

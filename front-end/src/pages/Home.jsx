@@ -82,6 +82,8 @@ export default function KnowledgeBaseHome() {
   return (
     <div className="flex min-h-screen bg-[#fcfcfc] text-slate-900 pt-12">
       <aside className="w-80 bg-white border-r p-6 flex flex-col sticky top-100 h-screen z-20">
+        <div className="flex items-center gap-3 mb-10 px-2">
+        </div>
 
         <div className="space-y-6 mb-8">
           <div className="px-4 py-4 bg-slate-50 rounded-2xl border border-slate-100">

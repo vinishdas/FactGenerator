@@ -21,6 +21,7 @@ function App() {
               <Route path="/analytics" element={<AnalyticsPage />} />
               <Route path="/diseases/:id/stages" element ={<Stages />}/> 
               <Route path="/diseases/:diseaseId/stages/:stageId" element ={<Facts />}/> 
+              {/* <Route path="/dashboard" element = {<Dashboard />}/> */}
               <Route path="*" element ={<HomePage/>}/> 
             </Routes>
           </Layout>
