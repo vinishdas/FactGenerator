@@ -14,14 +14,15 @@ import {
 import { Skeleton } from "../components/ui/skeleton.js";
 import { useFacts } from '../hooks/useGenerate.js';
 import { useGetFacts } from '../hooks/useFacts.js';
+import { Spinner } from '../components/ui/spinner.js';
 
 // Pre-defined RA Stages matching backend/app/services/ra_vocabulary.py
 const RA_STAGES_OPTIONS = [
-    { value: "Stage 1", label: "Stage 1: Risk / Asymptomatic" },
-    { value: "Stage 2", label: "Stage 2: Autoimmunity / Seropositive" },
-    { value: "Stage 3", label: "Stage 3: CSA / Arthralgia" },
-    { value: "Stage 4", label: "Stage 4: Diagnosis & Early Treatment" },
-    { value: "Stage 5", label: "Stage 5: Established / Advanced" },
+  { value: "Stage 1", label: "Stage 1: Risk / Asymptomatic" },
+  { value: "Stage 2", label: "Stage 2: Autoimmunity / Seropositive" },
+  { value: "Stage 3", label: "Stage 3: CSA / Arthralgia" },
+  { value: "Stage 4", label: "Stage 4: Diagnosis & Early Treatment" },
+  { value: "Stage 5", label: "Stage 5: Established / Advanced" },
 ];
 
 function GeneratePage() {
@@ -29,15 +30,31 @@ function GeneratePage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [factCount, setFactCount] = useState(5);
   // Hardcoded to the specific disease supported by backend
-  const [diseaseName] = useState("Rheumatoid Arthritis"); 
+  const [diseaseName] = useState("Rheumatoid Arthritis");
   const [stage, setStage] = useState(RA_STAGES_OPTIONS[0].value);
   const [keywords, setKeyWords] = useState("");
-  
+
   // Removed 'loading' from destructuring to prevent UI blocking
   const { generateFacts } = useFacts();
   const [jobId, setJobId] = useState(0);
   const { fetchFacts } = useGetFacts();
   const [generatedFacts, _setGeneratedFacts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  setTimeout(() => {
+    setLoading(false);
+  }, 1000)
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[80vh] gap-6 mt-12">
+        <Spinner size="lg" />
+        <p className="text-xs font-bold text-slate-400 animate-pulse tracking-widest uppercase">
+          Loading Data ...
+        </p>
+      </div>
+    );
+  }
 
   const handleFileChange = (e) => {
     if (e.target.files[0])
@@ -47,8 +64,8 @@ function GeneratePage() {
   const startGeneration = async () => {
     setIsGenerating(true);
     // Clear previous facts when starting a new generation
-    _setGeneratedFacts([]); 
-    
+    _setGeneratedFacts([]);
+
     try {
       if (!diseaseName) {
         setIsGenerating(false);
@@ -81,15 +98,15 @@ function GeneratePage() {
       const pollInterval = setInterval(async () => {
         const response = await fetchFacts(idToFetch);
         // Assuming response structure matches backend output
-        const factsList = response.facts || response; 
+        const factsList = response.facts || response;
 
         if (factsList && factsList.length > 0) {
-            // Check if job status is completed if available, or just presence of facts
-            _setGeneratedFacts(factsList);
-            // We might want to keep polling if the job is still "PROCESSING"
-            // For now, based on your previous code, stopping when facts appear:
-             setIsGenerating(false);
-             clearInterval(pollInterval);
+          // Check if job status is completed if available, or just presence of facts
+          _setGeneratedFacts(factsList);
+          // We might want to keep polling if the job is still "PROCESSING"
+          // For now, based on your previous code, stopping when facts appear:
+          setIsGenerating(false);
+          clearInterval(pollInterval);
         }
       }, 5000);
 
@@ -134,32 +151,32 @@ function GeneratePage() {
 
               <div className="space-y-2">
                 <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">
-                    Target Disease
+                  Target Disease
                 </label>
                 <div className="w-full bg-slate-100 border border-slate-200 rounded-2xl px-5 py-4 text-slate-500 font-bold cursor-not-allowed">
-                    {diseaseName}
+                  {diseaseName}
                 </div>
               </div>
 
               <div className="space-y-2">
                 <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">
-                    Target Stage
+                  Target Stage
                 </label>
                 <div className="relative">
-                    <select
-                        value={stage}
-                        onChange={(e) => setStage(e.target.value)}
-                        className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-4 text-slate-900 font-bold focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all appearance-none cursor-pointer"
-                    >
-                        {RA_STAGES_OPTIONS.map((opt) => (
-                            <option key={opt.value} value={opt.value}>
-                                {opt.label}
-                            </option>
-                        ))}
-                    </select>
-                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                       <PlusCircle className="text-slate-300" size={20} />
-                    </div>
+                  <select
+                    value={stage}
+                    onChange={(e) => setStage(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-4 text-slate-900 font-bold focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all appearance-none cursor-pointer"
+                  >
+                    {RA_STAGES_OPTIONS.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                    <PlusCircle className="text-slate-300" size={20} />
+                  </div>
                 </div>
               </div>
 
@@ -282,13 +299,13 @@ function GeneratePage() {
                         >
                           <div className="flex-1 space-y-2">
                             <div className="flex items-center gap-2">
-                                <CheckCircle2 size={16} className="text-emerald-500" />
-                                <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-600">
-                                   VERIFIED
-                                </span>
+                              <CheckCircle2 size={16} className="text-emerald-500" />
+                              <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-600">
+                                VERIFIED
+                              </span>
                             </div>
                             <p className="text-sm text-slate-800 font-medium leading-relaxed">
-                              {item.text || item.fact} 
+                              {item.text || item.fact}
                             </p>
                             <div className="flex items-center gap-1 text-[11px] text-slate-400 font-medium">
                               <FileSpreadsheet size={12} />
