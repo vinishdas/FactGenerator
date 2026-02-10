@@ -5,16 +5,11 @@ import {
   ShieldCheck,
   ChevronLeft,
   LayoutGrid,
-  Code2,
   Activity,
   ArrowRight,
   TrendingUp,
   XCircle,
-  CheckCircle2,
-  AlertCircle,
-  ExternalLink,
   Check,
-  X,
   Layers,
   Award,
   Filter
@@ -23,6 +18,7 @@ import { useDiseases } from "../hooks/useDisease";
 import { useStages } from "../hooks/useStages";
 import { Skeleton } from "../components/ui/skeleton";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { Spinner } from "../components/ui/spinner.js"
 
 // --- SUB-COMPONENTS ---
 
@@ -565,6 +561,17 @@ function AnalyticsPage() {
                 )}
             </AnimatePresence>
         </div>
+      </div>
+    );
+  }
+
+  if(loading){
+    return (
+      <div className="flex flex-col items-center justify-center h-[80vh] gap-6 mt-12">
+        <Spinner size="lg" />
+        <p className="text-xs font-bold text-slate-400 animate-pulse tracking-widest uppercase">
+          Loading Analytics ...
+        </p>
       </div>
     );
   }
