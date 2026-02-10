@@ -1,12 +1,14 @@
 from fastapi import FastAPI
 from sqlalchemy import text
 from app.database import engine, Base
-from app.routers import fact_generator,ontology
+from app.routers import fact_generator,ontology,compliance,analytics
+from fastapi.middleware.cors import CORSMiddleware
 
 
-with engine.connect() as connection:
-    connection.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
-    connection.commit()
+
+# with engine.connect() as connection:
+#     connection.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
+#     connection.commit()
 
 # --- DATABASE SETUP ---
 # This command looks at all your loaded models (in app/models/) 
@@ -20,11 +22,21 @@ app = FastAPI(
     version="1.0.0"
 )
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins = ["*"],
+    allow_credentials = False,
+    allow_headers = ["*"],
+    allow_methods=["*"]
+)
+
 # --- ROUTER REGISTRATION ---
 # Connects your "Fact Generator" feature to the main app.
 # You will add future features here (e.g., app.include_router(analysis.router))
 app.include_router(fact_generator.router)
 app.include_router(ontology.router)
+app.include_router(compliance.router)
+app.include_router(analytics.router)
 
 # --- HEALTH CHECK ---
 # A simple endpoint to verify the server is running.
