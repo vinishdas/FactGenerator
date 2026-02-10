@@ -38,7 +38,7 @@ function Footer() {
               <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Legal</h4>
               <ul className="space-y-2 text-sm font-bold text-slate-600">
                 <li className="hover:text-emerald-600 cursor-pointer transition-colors">Privacy Policy</li>
-                <li className="hover:text-emerald-600 cursor-pointer transition-colors">Compliance</li>
+                <li className="hover:text-emerald-600 cursor-pointer transition-colors">Singapore Compliance</li>
               </ul>
             </div>
           </div>
