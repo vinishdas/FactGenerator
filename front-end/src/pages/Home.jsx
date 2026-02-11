@@ -70,7 +70,7 @@ export default function KnowledgeBaseHome() {
 
   if ( diseasesLoading || isLoading ) {
     return (
-      <div className="flex flex-col items-center justify-center h-[80vh] gap-6 mt-12">
+      <div className="flex flex-col items-center justify-center h-[80vh] gap-6 mt-12 ml-15">
         <Spinner size="lg" />
         <p className="text-xs font-bold text-slate-400 animate-pulse tracking-widest uppercase">
           Loading Stages ...
